@@ -60,9 +60,6 @@ NoConn ~ 4850 3150
 NoConn ~ 4850 3250
 NoConn ~ 4850 3350
 NoConn ~ 4850 3450
-NoConn ~ 4850 3550
-NoConn ~ 4850 3650
-NoConn ~ 4850 4050
 NoConn ~ 3650 4050
 NoConn ~ 3650 3950
 NoConn ~ 3650 3850
@@ -72,34 +69,33 @@ NoConn ~ 3650 3550
 NoConn ~ 3650 3450
 NoConn ~ 3650 3350
 NoConn ~ 3650 3250
-NoConn ~ 3650 3150
 NoConn ~ 3650 3050
 NoConn ~ 3650 2950
-Text HLabel 5250 3950 2    60   Input ~ 0
+Text HLabel 4850 3750 2    60   Input ~ 0
 BTN_CFG_1
-Text HLabel 2900 4150 0    60   Input ~ 0
+Text HLabel 4850 3850 2    60   Input ~ 0
 BTN_CFG_2
-Text HLabel 5250 4350 2    60   Input ~ 0
+Text HLabel 4850 4450 2    60   Input ~ 0
 BTN_CFG_3
-Text HLabel 5250 4450 2    60   Input ~ 0
+Text HLabel 4850 4650 2    60   Input ~ 0
 BTN_CFG_4
-Text HLabel 5250 4650 2    60   Input ~ 0
+Text HLabel 3650 4350 0    60   Input ~ 0
 LED_4
-Text HLabel 5250 4250 2    60   Input ~ 0
+Text HLabel 4850 4350 2    60   Input ~ 0
 LED_3
-Text HLabel 2900 4250 0    60   Input ~ 0
+Text HLabel 4850 4050 2    60   Input ~ 0
 LED_2
-Text HLabel 5250 3750 2    60   Input ~ 0
+Text HLabel 4850 3550 2    60   Input ~ 0
 LED_1
-Text HLabel 5250 4550 2    60   Input ~ 0
+Text HLabel 3650 4450 0    60   Input ~ 0
 BTN_LED_4
-Text HLabel 2900 4350 0    60   Input ~ 0
+Text HLabel 4850 4550 2    60   Input ~ 0
 BTN_LED_3
-Text HLabel 5250 4150 2    60   Input ~ 0
+Text HLabel 4850 3950 2    60   Input ~ 0
 BTN_LED_2
-Text HLabel 5250 3850 2    60   Input ~ 0
+Text HLabel 4850 3650 2    60   Input ~ 0
 BTN_LED_1
-Text HLabel 2900 4450 0    60   Input ~ 0
+Text HLabel 3650 3150 0    60   Input ~ 0
 PWM
 $Comp
 L Conn_Poncho2P_2x_20x2 XA1
@@ -205,28 +201,6 @@ F 3 "" H 4800 2050 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	2900 4150 3650 4150
-Wire Wire Line
-	2900 4250 3650 4250
-Wire Wire Line
-	2900 4350 3650 4350
-Wire Wire Line
-	4850 4650 5250 4650
-Wire Wire Line
-	5250 4550 4850 4550
-Wire Wire Line
-	4850 4450 5250 4450
-Wire Wire Line
-	5250 4350 4850 4350
-Wire Wire Line
-	4850 4250 5250 4250
-Wire Wire Line
-	5250 4150 4850 4150
-Wire Wire Line
-	5250 3950 4850 3950
-Wire Wire Line
-	4850 3750 5250 3750
-Wire Wire Line
 	4850 2750 4900 2750
 Wire Wire Line
 	4900 2750 4900 2500
@@ -246,8 +220,6 @@ Wire Wire Line
 	3200 2850 3200 3000
 Wire Wire Line
 	3650 2850 3200 2850
-Wire Wire Line
-	3650 4450 2900 4450
 Wire Notes Line
 	1950 1050 1950 5450
 Wire Notes Line
@@ -270,8 +242,6 @@ Wire Wire Line
 	3650 4550 3400 4550
 Connection ~ 3400 4650
 Wire Wire Line
-	5250 3850 4850 3850
-Wire Wire Line
 	5150 2750 5150 2900
 Wire Wire Line
 	4500 2200 4800 2200
@@ -283,4 +253,8 @@ Connection ~ 4800 2200
 Wire Wire Line
 	5150 2300 5150 2350
 Connection ~ 4800 2300
+NoConn ~ 3650 4250
+NoConn ~ 3650 4150
+NoConn ~ 4850 4150
+NoConn ~ 4850 4250
 $EndSCHEMATC
