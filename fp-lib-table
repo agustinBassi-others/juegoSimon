@@ -1,3 +1,0 @@
-(fp_lib_table
-  (lib (name simonShield)(type KiCad)(uri "$(KIPRJMOD)/simonShield.pretty")(options "")(descr ""))
-)
