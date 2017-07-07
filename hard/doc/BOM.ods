@@ -1,0 +1,75 @@
+Source:,/media/sf_Documentos_HP/mantech/proyectos/simonShield/simonShield.sch
+Date:,sáb 01 jul 2017 03:09:51 ART
+Tool:,Eeschema 4.0.6-e0-6349~53~ubuntu16.04.1
+Generator:,/media/sf_Documentos_HP/mantech/proyectos/adquisidorViento/hard/tools/bom_csv_grouped_by_value.py
+Component Count:,44
+
+Individual Components:
+
+Item,Qty,Reference(s),Value,LibPart,Footprint,Datasheet,Descripcion,Digikey#
+,,C1,C_100nF,simonLib:C_100nF,simonShield:C_Disc_D3_P2.5,,,BC1160TR­ND
+,,D1,AMARILLO,simonLib:LED_5_MM,simonShield:LED-5MM,,,1497-1031-ND
+,,D2,AZUL,simonLib:LED_5_MM,simonShield:LED-5MM,,,1497-1031-ND
+,,D3,ROJO,simonLib:LED_5_MM,simonShield:LED-5MM,,,1497-1031-ND
+,,D4,VERDE,simonLib:LED_5_MM,simonShield:LED-5MM,,,1497-1031-ND
+,,F1,FIDUCIAL,simonShield-cache:FIDUCIAL,simonShield:Fiducial_1mm,,FIDUCIAL,
+,,F2,FIDUCIAL,simonShield-cache:FIDUCIAL,simonShield:Fiducial_1mm,,FIDUCIAL,
+,,F3,FIDUCIAL,simonShield-cache:FIDUCIAL,simonShield:Fiducial_1mm,,FIDUCIAL,
+,,P1,PWR_JUMPER,simonLib:PWR_JUMPER,simonShield:Pin_Header_Straight_2x02,,,952-2121-ND
+,,Q1,BC547,simonLib:BC547,simonShield:TO-92_Molded_Narrow,,,BC33725TACT-ND
+,,Q2,BC547,simonLib:BC547,simonShield:TO-92_Molded_Narrow,,,BC33725TACT-ND
+,,Q3,BC547,simonLib:BC547,simonShield:TO-92_Molded_Narrow,,,BC33725TACT-ND
+,,Q4,BC547,simonLib:BC547,simonShield:TO-92_Molded_Narrow,,,BC33725TACT-ND
+,,Q5,BC547,simonLib:BC547,simonShield:TO-92_Molded_Narrow,,,BC33725TACT-ND
+,,R1,3K3,simonLib:R,simonShield:Resistor_Horizontal_RM7mm,,,680EBK-ND
+,,R2,3K3,simonLib:R,simonShield:Resistor_Horizontal_RM7mm,,,680EBK-ND
+,,R3,3K3,simonLib:R,simonShield:Resistor_Horizontal_RM7mm,,,680EBK-ND
+,,R4,3K3,simonLib:R,simonShield:Resistor_Horizontal_RM7mm,,,680EBK-ND
+,,R5,3K3,simonLib:R,simonShield:Resistor_Horizontal_RM7mm,,,680EBK-ND
+,,R6,3K3,simonLib:R,simonShield:Resistor_Horizontal_RM7mm,,,680EBK-ND
+,,R7,3K3,simonLib:R,simonShield:Resistor_Horizontal_RM7mm,,,680EBK-ND
+,,R8,3K3,simonLib:R,simonShield:Resistor_Horizontal_RM7mm,,,680EBK-ND
+,,R9,3K3,simonLib:R,simonShield:Resistor_Horizontal_RM7mm,,,680EBK-ND
+,,R10,1K,simonLib:R,simonShield:Resistor_Horizontal_RM7mm,,,680EBK-ND
+,,R11,10K,simonLib:R,simonShield:Resistor_Horizontal_RM7mm,,,680EBK-ND
+,,R12,680,simonLib:R,simonShield:Resistor_Horizontal_RM7mm,,,680EBK-ND
+,,R13,10K,simonLib:R,simonShield:Resistor_Horizontal_RM7mm,,,680EBK-ND
+,,R14,680,simonLib:R,simonShield:Resistor_Horizontal_RM7mm,,,680EBK-ND
+,,R15,10K,simonLib:R,simonShield:Resistor_Horizontal_RM7mm,,,680EBK-ND
+,,R16,680,simonLib:R,simonShield:Resistor_Horizontal_RM7mm,,,680EBK-ND
+,,R17,10K,simonLib:R,simonShield:Resistor_Horizontal_RM7mm,,,680EBK-ND
+,,R18,680,simonLib:R,simonShield:Resistor_Horizontal_RM7mm,,,680EBK-ND
+,,R_PUENTE_1,R,simonLib:R,Resistors_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal,,,
+,,R_PUENTE_2,R,simonLib:R,Resistors_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal,,,
+,,SW1,SW_PUSH,simonLib:SW_PUSH,simonShield:SW_PUSH_SMALL,,,450-1804-ND
+,,SW2,SW_PUSH,simonLib:SW_PUSH,simonShield:SW_PUSH_SMALL,,,450-1804-ND
+,,SW3,SW_PUSH,simonLib:SW_PUSH,simonShield:SW_PUSH_SMALL,,,450-1804-ND
+,,SW4,SW_PUSH,simonLib:SW_PUSH,simonShield:SW_PUSH_SMALL,,,450-1804-ND
+,,SW5,SW_PUSH,simonLib:SW_PUSH,simonShield:SW_PUSH_SMALL,,,450-1804-ND
+,,SW6,SW_PUSH,simonLib:SW_PUSH,simonShield:SW_PUSH_SMALL,,,450-1804-ND
+,,SW7,SW_PUSH,simonLib:SW_PUSH,simonShield:SW_PUSH_SMALL,,,450-1804-ND
+,,SW8,SW_PUSH,simonLib:SW_PUSH,simonShield:SW_PUSH_SMALL,,,450-1804-ND
+,,U1,BUZZER,simonLib:BUZZER,simonShield:MagneticBuzzer_ProSignal_ABT-410-RC,,,445-2525-1-ND
+,,XA1,Conn_Poncho2P_2x_20x2,simonLib:Conn_Poncho2P_2x_20x2,simonShield:Conn_Poncho_SinBorde,,,952-2121-ND
+
+
+
+Collated Components:
+
+Item,Qty,Reference(s),Value,LibPart,Footprint,Datasheet,Descripcion,Digikey#
+1,1,C1,C_100nF,simonLib:C_100nF,simonShield:C_Disc_D3_P2.5,,,BC1160TR­ND
+2,1,D1,AMARILLO,simonLib:LED_5_MM,simonShield:LED-5MM,,,1497-1031-ND
+3,1,D2,AZUL,simonLib:LED_5_MM,simonShield:LED-5MM,,,1497-1031-ND
+4,1,D3,ROJO,simonLib:LED_5_MM,simonShield:LED-5MM,,,1497-1031-ND
+5,1,D4,VERDE,simonLib:LED_5_MM,simonShield:LED-5MM,,,1497-1031-ND
+6,3,"F1, F2, F3",FIDUCIAL,simonShield-cache:FIDUCIAL,simonShield:Fiducial_1mm,,FIDUCIAL,
+7,1,P1,PWR_JUMPER,simonLib:PWR_JUMPER,simonShield:Pin_Header_Straight_2x02,,,952-2121-ND
+8,5,"Q1, Q2, Q3, Q4, Q5",BC547,simonLib:BC547,simonShield:TO-92_Molded_Narrow,,,BC33725TACT-ND
+9,9,"R1, R2, R3, R4, R5, R6, R7, R8, R9",3K3,simonLib:R,simonShield:Resistor_Horizontal_RM7mm,,,680EBK-ND
+10,1,R10,1K,simonLib:R,simonShield:Resistor_Horizontal_RM7mm,,,680EBK-ND
+11,4,"R11, R13, R15, R17",10K,simonLib:R,simonShield:Resistor_Horizontal_RM7mm,,,680EBK-ND
+12,4,"R12, R14, R16, R18",680,simonLib:R,simonShield:Resistor_Horizontal_RM7mm,,,680EBK-ND
+13,2,"R_PUENTE_1, R_PUENTE_2",R,simonLib:R,Resistors_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal,,,
+14,8,"SW1, SW2, SW3, SW4, SW5, SW6, SW7, SW8",SW_PUSH,simonLib:SW_PUSH,simonShield:SW_PUSH_SMALL,,,450-1804-ND
+15,1,U1,BUZZER,simonLib:BUZZER,simonShield:MagneticBuzzer_ProSignal_ABT-410-RC,,,445-2525-1-ND
+16,1,XA1,Conn_Poncho2P_2x_20x2,simonLib:Conn_Poncho2P_2x_20x2,simonShield:Conn_Poncho_SinBorde,,,952-2121-ND
