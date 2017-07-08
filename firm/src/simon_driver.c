@@ -43,6 +43,10 @@
 
 /*==================[macros and definitions]=================================*/
 
+#define SKILL_DELAY_MIN 	100
+#define SKILL_DELAY_MAX 	1000
+#define SKILL_DELAY_STEP 	100
+
 typedef enum SoundType{
 	SOUND_1,
 	SOUND_2,
@@ -54,10 +58,10 @@ typedef enum SoundType{
 
 /*==================[internal data declaration]==============================*/
 
-static uint8_t Skill;
-static uint8_t Game;
-static uint8_t MaxIndexReached;
-static uint8_t CurrentArray[NUMBER_OF_MAX_PLAYS];
+static uint32_t SkillDelay = SKILL_DELAY_MAX;
+static uint8_t GameType;
+static uint8_t CurrentPlayElements;
+static uint8_t CurrentPLay[NUMBER_OF_MAX_PLAYS];
 
 /*==================[internal functions declaration]=========================*/
 
@@ -187,57 +191,72 @@ static void	 		ChangeGame				(void){
 }
 
 static void 		ChangeSkill				(void){
+	delay(500);
+	SkillDelay = SkillDelay - SKILL_DELAY_STEP;
+	if (SkillDelay <= SKILL_DELAY_MIN)
+		SkillDelay = SKILL_DELAY_MAX;
+	SetAllLeds(OFF);
+	SetAllLeds(TRUE);
+	delay(SkillDelay);
+	SetAllLeds(OFF);
 	//todo cambiar velocidad del juego (no implementado por ahora)
+
 }
 
-SimonEvent_t 		LaunchNextPlay 			(){
-//	todo: lanzar un random entre 0 y 3
-//	Se seteo el define __RAND_MAX dentro de config.h (en el direcorio gcc-.../arm-none-eabi/include/sys/config.h
+static bool_t		GetCurrentPlay			(){
+	static uint8_t elementIndex = 0;
+	SimonEvent_t eventOcurred = SIMON_EVENT_NONE;
+	bool_t endOfGame = FALSE;
 
-SimonEvent_t simonEventToWait;
-static uint8_t randomValue;
+	for(elementIndex = 0; elementIndex < CurrentPlayElements && endOfGame == FALSE; elementIndex++){
+		/** Se queda esperando que se apriete una tecla. */
+		while ((eventOcurred = ReadButtons()) == SIMON_EVENT_NONE) ;
+		/** Si la tecla recibida es distinta a la que se lanzo en la jugada deja de esperar mas teclas. */
+		if (eventOcurred != CurrentPLay[elementIndex]){
+			/** Reinicia el contador global de la jugada a cero. */
+			CurrentPlayElements = 0;
+			/** Haciendo eso fuerza la condicion de salida, ya que no es mas menor que playElements. */
+			endOfGame = TRUE;
+			bzero(CurrentPLay, NUMBER_OF_MAX_PLAYS);
+		}
+		delay(200);
+	}
+	return endOfGame;
+}
+
+void 		LaunchNextPlay 			(){
+//	Se seteo el define __RAND_MAX dentro de config.h (en el direcorio gcc-.../arm-none-eabi/include/sys/config.h
+static uint8_t randomValue, elementIndex;
 
 	//randomValue = rand(); todo: hay que poder enviar resultados pseudoaleatorios.
-	if (++randomValue == 3){
+	if (++randomValue == 4){
 		randomValue = 0;
 	}
-
+	//Guarda el numero aleatorio que salio en el historial de la jugada
+	if 		(randomValue == 0) CurrentPLay[CurrentPlayElements] = SIMON_EVENT_TEC_AMARILLO_PULSADA;
+	else if (randomValue == 1) CurrentPLay[CurrentPlayElements] = SIMON_EVENT_TEC_AZUL_PULSADA;
+	else if (randomValue == 2) CurrentPLay[CurrentPlayElements] = SIMON_EVENT_TEC_ROJO_PULSADA;
+	else if (randomValue == 3) CurrentPLay[CurrentPlayElements] = SIMON_EVENT_TEC_VERDE_PULSADA;
+	CurrentPlayElements++;
+	/** Enciende los LEDs en funcion del numero random que salio. */
+	for (elementIndex = 0; elementIndex < CurrentPlayElements; elementIndex++){
+		SetAllLeds(OFF);
+		if 		(CurrentPLay[elementIndex] == SIMON_EVENT_TEC_AMARILLO_PULSADA)		WriteSimonPin(SIMON_PIN_LED_AMARILLO, ON);
+		else if (CurrentPLay[elementIndex] == SIMON_EVENT_TEC_AZUL_PULSADA)			WriteSimonPin(SIMON_PIN_LED_AZUL, ON);
+		else if (CurrentPLay[elementIndex] == SIMON_EVENT_TEC_ROJO_PULSADA)			WriteSimonPin(SIMON_PIN_LED_ROJO, ON);
+		else if (CurrentPLay[elementIndex] == SIMON_EVENT_TEC_VERDE_PULSADA)			WriteSimonPin(SIMON_PIN_LED_VERDE, ON);
+		delay(SkillDelay);
+	}
 	SetAllLeds(OFF);
-
-	if 		(randomValue == 0){
-		WriteSimonPin(SIMON_PIN_LED_AMARILLO, ON);
-		SendSound(SOUND_1);
-		simonEventToWait = SIMON_EVENT_TEC_AMARILLO_PULSADA;
-	}
-	else if (randomValue == 1){
-		WriteSimonPin(SIMON_PIN_LED_AZUL, ON);
-		SendSound(SOUND_2);
-		simonEventToWait = SIMON_EVENT_TEC_AZUL_PULSADA;
-	}
-	else if (randomValue == 2){
-		WriteSimonPin(SIMON_PIN_LED_ROJO, ON);
-		SendSound(SOUND_3);
-		simonEventToWait = SIMON_EVENT_TEC_ROJO_PULSADA;
-	}
-	else if (randomValue == 3){
-		WriteSimonPin(SIMON_PIN_LED_VERDE, ON);
-		SendSound(SOUND_4);
-		simonEventToWait = SIMON_EVENT_TEC_VERDE_PULSADA;
-	}
-	delay(500);
-	SetAllLeds(OFF);
-//	BestArray[MaxIndexReached] = randomValue; todo En realidad aca hay que guardar el pin
-
-	return simonEventToWait;
 }
 
 /*==================[external functions definition]==========================*/
 
-void 				SimonDriver_MachineState (SimonEvent_t simonEvent){
+void 				SimonDriver_MachineState (){
 
-static simonState = SIMON_STATE_INIT;
-SimonEvent_t eventOcurred, colSorSended;
-bool_t endOfGame;
+static SimonState_t simonState = SIMON_STATE_INIT;
+SimonEvent_t eventOcurred = SIMON_EVENT_NONE;
+bool_t endOfGame = TRUE;
 
 	switch(simonState){
 		case SIMON_STATE_INIT:
@@ -247,11 +266,13 @@ bool_t endOfGame;
 		break;
 		case SIMON_STATE_WAIT_BUTTON:
 			while (simonState == SIMON_STATE_WAIT_BUTTON){
+				eventOcurred = ReadButtons();
 				if 		(eventOcurred == SIMON_EVENT_TEC_START_PULSADA) 	simonState = SIMON_STATE_LAUNCH_GAME;
 				else if (eventOcurred == SIMON_EVENT_TEC_SKILL_PULSADA) 	simonState = SIMON_STATE_CHANGE_SKILL;
 				else if (eventOcurred == SIMON_EVENT_TEC_BEST_PULSADA) 		simonState = SIMON_STATE_SHOW_BEST;
-				else if (eventOcurred == SIMON_EVENT_TEC_GAME_PULSADA) 		simonState = SIMON_STATE_CHANGE_GAME;
+				else if (eventOcurred == SIMON_EVENT_TEC_GAME_PULSADA) 		simonState = SIMON_STATE_CHANGE_SKILL;// OJO: PARCHE DE PRUEBA simonState = SIMON_STATE_CHANGE_GAME;
 			}
+
 		break;
 		case SIMON_STATE_SHOW_BEST:
 			ShowBestGame();
@@ -266,29 +287,13 @@ bool_t endOfGame;
 			simonState = SIMON_STATE_WAIT_BUTTON;
 		break;
 		case SIMON_STATE_LAUNCH_GAME:
-//			endOfGame = FALSE;
-//			while (!endOfGame){
-//				colorSended = LaunchNextPlay();
-//				while ((eventOcurred = ReadButtons()) == SIMON_EVENT_NONE) ;	//se queda esperando leer una tecla valida
-//				if (eventOcurred != colorSended){
-//					simonState = SIMON_STATE_FINISH_GAME;
-//					endOfGame = TRUE;
-//				}
-//			}
-			endOfGame = FALSE;
-			while (!endOfGame){
-				colorSended = LaunchNextPlay();
-				while ((eventOcurred = ReadButtons()) == SIMON_EVENT_NONE) ;	//se queda esperando leer una tecla valida
-				if (eventOcurred != colorSended){
-					simonState = SIMON_STATE_FINISH_GAME;
-					endOfGame = TRUE;
-				}
-			}
-			//Lanzar la siguiente jugada y guardar el historial
+			delay(500);
+			/** Lanzar la siguiente jugada y guardar el historial */
 			LaunchNextPlay();
-			//Compara la jugada lanzada con la jugada recibida
-			GetCurrentPlay();
-
+			/** Compara la jugada lanzada con la jugada recibida */
+			endOfGame = GetCurrentPlay();
+			/** Espera hasta que se termine la jugada por error o cantidad maxima de juegos. */
+			if (endOfGame)	simonState = SIMON_STATE_FINISH_GAME;
 		break;
 		case SIMON_STATE_FINISH_GAME:
 			SetAllLeds(ON);
@@ -309,6 +314,7 @@ int 				main					(void){
 	boardConfig();
 	/* Inicializar el conteo de Ticks con resolución de 1ms, sin tickHook */
 	tickConfig( 1, 0 );
+	delay(1000);
 	/* Inicializar GPIOs */
 	gpioConfig( 0, GPIO_ENABLE );
 	gpioConfig( 1, GPIO_ENABLE );
@@ -318,7 +324,7 @@ int 				main					(void){
 	gpioConfig( 5, GPIO_ENABLE );
 
 	while (1){
-		SimonDriver_MachineState(SIMON_STATE_INIT);
+		SimonDriver_MachineState();
 	}
 	/* NO DEBE LLEGAR NUNCA AQUI, debido a que a este programa no es llamado
 	por ningun S.O. */
