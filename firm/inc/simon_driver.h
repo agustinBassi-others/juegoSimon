@@ -50,18 +50,23 @@ extern "C" {
 
 /*==================[typedef]================================================*/
 
+typedef enum SimonPinConfig{
+	SIMON_PIN_INPUT = (int) GPIO_INPUT,
+	SIMON_PIN_OUTPUT = (int ) GPIO_OUTPUT,
+} SimontPinConfig_t;
+
 typedef enum SimonState {
-	SIMON_STATE_INICIANDO,
-	SIMON_STATE_ESPERANDO_TECLAS,
-	SIMON_STATE_MOSTRANDO_BEST,
-	SIMON_STATE_CAMBIANDO_SKILL,
-	SIMON_STATE_CAMBIANDO_JUEGO,
-	SIMON_STATE_LANZANDO_JUEGO,
-	SIMON_STATE_FINALIZANDO_JUEGO
+	SIMON_STATE_INIT,
+	SIMON_STATE_WAIT_BUTTON,
+	SIMON_STATE_SHOW_BEST,
+	SIMON_STATE_CHANGE_SKILL,
+	SIMON_STATE_CHANGE_GAME,
+	SIMON_STATE_LAUNCH_GAME,
+	SIMON_STATE_FINISH_GAME
 } SimonState_t;
 
 typedef enum SimonEvent {
-	SIMON_EVENT_NINGUNO,
+	SIMON_EVENT_NONE,
 	SIMON_EVENT_TEC_AMARILLO_PULSADA,
 	SIMON_EVENT_TEC_VERDE_PULSADA,
 	SIMON_EVENT_TEC_AZUL_PULSADA,
@@ -91,7 +96,7 @@ typedef enum SimonPin{
 gpioMap_t SimonDriver_GpioMap [] = {
 		ENET_RXD0,//SIMON_PIN_BUZZER
 		SPI_MISO,//SIMON_PIN_LED_AMARILLO
-		ENET_RXD1,//SIMON_PIN_TEC_AMARILLO //En realidad va SPI_SCK,
+		LCD1,//SIMON_PIN_TEC_AMARILLO //En realidad va SPI_SCK,
 		LCD4,//SIMON_PIN_TEC_START
 		LCDRS,//SIMON_PIN_TEC_GAME
 		LCD3,//SIMON_PIN_TEC_AZUL
@@ -104,13 +109,13 @@ gpioMap_t SimonDriver_GpioMap [] = {
 		GPIO4//SIMON_PIN_LED_VERDE
 };
 
-#define SECUENCIA_MAX_SIZE			20
+#define NUMBER_OF_MAX_PLAYS			20
 
 /*==================[external data declaration]==============================*/
 
 /*==================[external functions declaration]=========================*/
 
-void SimonDriver_MachineState (SimonEvent_t simonEvent);
+void SimonDriver_MachineState (void);
 
 /*==================[cplusplus]==============================================*/
 

@@ -57,17 +57,18 @@ typedef enum SoundType{
 static uint8_t Skill;
 static uint8_t Game;
 static uint8_t MaxIndexReached;
-static uint8_t BestArray[SECUENCIA_MAX_SIZE];
+static uint8_t CurrentArray[NUMBER_OF_MAX_PLAYS];
 
 /*==================[internal functions declaration]=========================*/
 
-static void EnviarSonido 			(SoundType_t soundType);
-static void SecuenciaInicio 		(void);
-static void ConfigurarPines			(void);
-static void EscribirPin				(uint8_t ledNumber, bool_t state);
-static void MostrarMejorSecuencia	(void);
-static void CambiarJuego			(void);
-static void CambiarHabilidad		(void);
+static void SendSound 			(SoundType_t soundType);
+//static void InitSecuence 		(void);
+static void InitSimonBoard 		(void);
+static void ConfigSimonPin			(SimonPin_t simonPin, SimontPinConfig_t pinConfig);
+static void WriteSimonPin				(uint8_t ledNumber, bool_t state);
+static void ShowBestGame	(void);
+static void ChangeGame			(void);
+static void ChangeSkill		(void);
 static void SetAllLeds 			(bool_t state);
 
 /*==================[internal data definition]===============================*/
@@ -78,37 +79,15 @@ extern gpioMap_t SimonDriver_GpioMap [];
 
 /*==================[internal functions definition]==========================*/
 
-static void EnviarSonido 			(SoundType_t soundType){
-	// todo sacar un PWM por software entre 200 Hz y 20 Khz
-}
+/******************* CAPA HAL (depende de sAPI) ******************************/
 
-static void SecuenciaInicio 		(void){
-	SetAllLeds(OFF);
-	EscribirPin(SIMON_PIN_LED_AMARILLO, ON);
-	delay(500);
-	EscribirPin(SIMON_PIN_LED_AMARILLO, ON);
-	delay(500);
-	EscribirPin(SIMON_PIN_LED_AMARILLO, ON);
-	delay(500);
-	EscribirPin(SIMON_PIN_LED_AMARILLO, ON);
-	delay(500);
-	SetAllLeds(OFF);
-}
-
-static void ConfigurarPines			(void){
-	gpioConfig( SimonDriver_GpioMap[SIMON_PIN_BUZZER], 			GPIO_OUTPUT );
-	gpioConfig( SimonDriver_GpioMap[SIMON_PIN_LED_AMARILLO], 	GPIO_OUTPUT );
-	gpioConfig( SimonDriver_GpioMap[SIMON_PIN_TEC_AMARILLO], 	GPIO_INPUT );
-	gpioConfig( SimonDriver_GpioMap[SIMON_PIN_TEC_START], 		GPIO_INPUT );
-	gpioConfig( SimonDriver_GpioMap[SIMON_PIN_TEC_GAME], 		GPIO_INPUT );
-	gpioConfig( SimonDriver_GpioMap[SIMON_PIN_TEC_AZUL], 		GPIO_INPUT );
-	gpioConfig( SimonDriver_GpioMap[SIMON_PIN_LED_AZUL], 		GPIO_OUTPUT );
-	gpioConfig( SimonDriver_GpioMap[SIMON_PIN_LED_ROJO], 		GPIO_OUTPUT );
-	gpioConfig( SimonDriver_GpioMap[SIMON_PIN_TEC_ROJO], 		GPIO_INPUT );
-	gpioConfig( SimonDriver_GpioMap[SIMON_PIN_TEC_SKILL], 		GPIO_INPUT );
-	gpioConfig( SimonDriver_GpioMap[SIMON_PIN_TEC_BEST], 		GPIO_INPUT );
-	gpioConfig( SimonDriver_GpioMap[SIMON_PIN_TEC_VERDE], 		GPIO_INPUT );
-	gpioConfig( SimonDriver_GpioMap[SIMON_PIN_LED_VERDE], 		GPIO_OUTPUT );
+/**
+ * Configura un pin como entrada o salida. Junto con las de leer y escribir pin son las unicas que llaman a sAPI
+ * @param simonPin pin del juego Simon
+ * @param pinConfig configurado como entrada SIMON_PIN_INPUT o salida SIMON_PIN_OUTPUT
+ */
+static void 		ConfigSimonPin			(SimonPin_t simonPin, SimontPinConfig_t pinConfig){
+	gpioConfig( SimonDriver_GpioMap[simonPin], 	pinConfig );
 }
 
 /**
@@ -117,7 +96,7 @@ static void ConfigurarPines			(void){
  * @param simonPin pin o LED a escribir.
  * @param pinState ON or OFF.
  */
-static void EscribirPin (SimonPin_t ledPin, bool_t pinState){
+static void 		WriteSimonPin 			(SimonPin_t ledPin, bool_t pinState){
 	if (ledPin == SIMON_PIN_LED_AMARILLO || ledPin == SIMON_PIN_LED_ROJO || ledPin == SIMON_PIN_LED_AZUL || ledPin == SIMON_PIN_LED_VERDE){
 		gpioWrite(SimonDriver_GpioMap[ledPin], pinState);
 	}
@@ -127,58 +106,98 @@ static void EscribirPin (SimonPin_t ledPin, bool_t pinState){
  * Unica funcion dependiente del hardware. Cambiar la llamada para otra plataforma que no sea EDU-CIAA.
  * Utilizado para leer las teclas.
  * @param simonPin pin a leer de la placa del juego
- * @return TRUE si el pin esta bajo FALSE si el pin esta alto. 
+ * @return TRUE si el pin esta bajo FALSE si el pin esta alto.
  */
-static bool_t LeerPin (SimonPin_t simonPin){
+static bool_t 		ReadSimonPin 			(SimonPin_t simonPin){
 	bool_t pinState = pinState;
 	pinState = !gpioRead( SimonDriver_GpioMap[simonPin])? TRUE : FALSE;
 	return pinState;
 }
 
-static void SetAllLeds (bool_t state){
-	EscribirPin(SIMON_PIN_LED_AMARILLO, state);
-	EscribirPin(SIMON_PIN_LED_ROJO, state);
-	EscribirPin(SIMON_PIN_LED_AZUL, state);
-	EscribirPin(SIMON_PIN_LED_VERDE, state);
+
+/******************* CAPA DRIVER DE LA APLICACION ******************************/
+
+static void 		InitSimonBoard			(void){
+	/* Configurar pines del juego Simon. */
+	ConfigSimonPin(SIMON_PIN_BUZZER, 		GPIO_OUTPUT );
+	ConfigSimonPin(SIMON_PIN_LED_AMARILLO, 	GPIO_OUTPUT );
+	ConfigSimonPin(SIMON_PIN_TEC_AMARILLO, 	GPIO_INPUT );
+	ConfigSimonPin(SIMON_PIN_TEC_START, 	GPIO_INPUT );
+	ConfigSimonPin(SIMON_PIN_TEC_GAME, 		GPIO_INPUT );
+	ConfigSimonPin(SIMON_PIN_TEC_AZUL, 		GPIO_INPUT );
+	ConfigSimonPin(SIMON_PIN_LED_AZUL, 		GPIO_OUTPUT );
+	ConfigSimonPin(SIMON_PIN_LED_ROJO, 		GPIO_OUTPUT );
+	ConfigSimonPin(SIMON_PIN_TEC_ROJO, 		GPIO_INPUT );
+	ConfigSimonPin(SIMON_PIN_TEC_SKILL, 	GPIO_INPUT );
+	ConfigSimonPin(SIMON_PIN_TEC_BEST, 		GPIO_INPUT );
+	ConfigSimonPin(SIMON_PIN_TEC_VERDE, 	GPIO_INPUT );
+	ConfigSimonPin(SIMON_PIN_LED_VERDE, 	GPIO_OUTPUT );
 }
 
-static void MostrarMejorSecuencia	(void){
-	//todo leer el arreglo bestArray e ir prendiendo leds y emitiendo sonido
-}
+SimonEvent_t 		ReadButtons 			(){
+	SimonEvent_t simonEvent = SIMON_EVENT_NONE;
 
-static void CambiarJuego			(void){
-	//todo cambiar tipo de juego (no implementado por ahora)
-}
-
-static void CambiarHabilidad		(void){
-	//todo cambiar velocidad del juego (no implementado por ahora)
-}
-
-SimonEvent_t LeerTeclas (){
-	SimonEvent_t simonEvent = SIMON_EVENT_NINGUNO;
-
-	if 		(!gpioRead( SimonDriver_GpioMap[SIMON_PIN_TEC_AMARILLO] ))	simonEvent = SIMON_EVENT_TEC_AMARILLO_PULSADA;
-	else if (!gpioRead( SimonDriver_GpioMap[SIMON_PIN_TEC_START] ))		simonEvent = SIMON_EVENT_TEC_START_PULSADA;
-	else if (!gpioRead( SimonDriver_GpioMap[SIMON_PIN_TEC_GAME] ))		simonEvent = SIMON_EVENT_TEC_GAME_PULSADA;
-	else if (!gpioRead( SimonDriver_GpioMap[SIMON_PIN_TEC_AZUL] ))		simonEvent = SIMON_EVENT_TEC_AZUL_PULSADA;
-	else if (!gpioRead( SimonDriver_GpioMap[SIMON_PIN_TEC_ROJO] ))		simonEvent = SIMON_EVENT_TEC_ROJO_PULSADA;
-	else if (!gpioRead( SimonDriver_GpioMap[SIMON_PIN_TEC_SKILL] ))		simonEvent = SIMON_EVENT_TEC_SKILL_PULSADA;
-	else if (!gpioRead( SimonDriver_GpioMap[SIMON_PIN_TEC_BEST] ))		simonEvent = SIMON_EVENT_TEC_BEST_PULSADA;
-	else if (!gpioRead( SimonDriver_GpioMap[SIMON_PIN_TEC_VERDE] ))		simonEvent = SIMON_EVENT_TEC_VERDE_PULSADA;
+	if 		(ReadSimonPin (SIMON_PIN_TEC_AMARILLO ))	simonEvent = SIMON_EVENT_TEC_AMARILLO_PULSADA;
+	else if (ReadSimonPin (SIMON_PIN_TEC_START ))	simonEvent = SIMON_EVENT_TEC_START_PULSADA;
+	else if (ReadSimonPin (SIMON_PIN_TEC_GAME ))		simonEvent = SIMON_EVENT_TEC_GAME_PULSADA;
+	else if (ReadSimonPin (SIMON_PIN_TEC_AZUL ))		simonEvent = SIMON_EVENT_TEC_AZUL_PULSADA;
+	else if (ReadSimonPin (SIMON_PIN_TEC_ROJO ))		simonEvent = SIMON_EVENT_TEC_ROJO_PULSADA;
+	else if (ReadSimonPin (SIMON_PIN_TEC_SKILL ))	simonEvent = SIMON_EVENT_TEC_SKILL_PULSADA;
+	else if (ReadSimonPin (SIMON_PIN_TEC_BEST ))		simonEvent = SIMON_EVENT_TEC_BEST_PULSADA;
+	else if (ReadSimonPin (SIMON_PIN_TEC_VERDE ))	simonEvent = SIMON_EVENT_TEC_VERDE_PULSADA;
 
 	delay(100);
-
+	//todo; hacer un parche para detectar si es la tecla roja o skill.
 	return simonEvent;
 }
 
-SimonEvent_t LanzarSiguiente (){
+static void 		SetAllLeds 				(bool_t state){
+	WriteSimonPin(SIMON_PIN_LED_AMARILLO, state);
+	WriteSimonPin(SIMON_PIN_LED_ROJO, state);
+	WriteSimonPin(SIMON_PIN_LED_AZUL, state);
+	WriteSimonPin(SIMON_PIN_LED_VERDE, state);
+}
+
+static void 		SendSound 				(SoundType_t soundType){
+	// todo sacar un PWM por software entre 200 Hz y 20 Khz
+
+}
+
+/******************* CAPA DEL JUEGO PROPIAMENTE DICHA ******************************/
+
+static void 		InitSecuence 			(void){
+	SetAllLeds(OFF);
+	WriteSimonPin(SIMON_PIN_LED_AMARILLO, ON);
+	delay(500);
+	WriteSimonPin(SIMON_PIN_LED_AZUL, ON);
+	delay(500);
+	WriteSimonPin(SIMON_PIN_LED_ROJO, ON);
+	delay(500);
+	WriteSimonPin(SIMON_PIN_LED_VERDE, ON);
+	delay(500);
+	SetAllLeds(OFF);
+}
+
+static void 		ShowBestGame			(void){
+	//todo leer el arreglo bestArray e ir prendiendo leds y emitiendo sonido
+}
+
+static void	 		ChangeGame				(void){
+	//todo cambiar tipo de juego (no implementado por ahora)
+}
+
+static void 		ChangeSkill				(void){
+	//todo cambiar velocidad del juego (no implementado por ahora)
+}
+
+SimonEvent_t 		LaunchNextPlay 			(){
 //	todo: lanzar un random entre 0 y 3
 //	Se seteo el define __RAND_MAX dentro de config.h (en el direcorio gcc-.../arm-none-eabi/include/sys/config.h
 
 SimonEvent_t simonEventToWait;
-uint8_t randomValue;
+static uint8_t randomValue;
 
-	//randomValue = rand();
+	//randomValue = rand(); todo: hay que poder enviar resultados pseudoaleatorios.
 	if (++randomValue == 3){
 		randomValue = 0;
 	}
@@ -186,130 +205,124 @@ uint8_t randomValue;
 	SetAllLeds(OFF);
 
 	if 		(randomValue == 0){
-		EscribirPin(SIMON_PIN_LED_AMARILLO, ON);
-		EnviarSonido(SOUND_1);
+		WriteSimonPin(SIMON_PIN_LED_AMARILLO, ON);
+		SendSound(SOUND_1);
 		simonEventToWait = SIMON_EVENT_TEC_AMARILLO_PULSADA;
 	}
 	else if (randomValue == 1){
-		EscribirPin(SIMON_PIN_LED_AZUL, ON);
-		EnviarSonido(SOUND_1);
+		WriteSimonPin(SIMON_PIN_LED_AZUL, ON);
+		SendSound(SOUND_2);
 		simonEventToWait = SIMON_EVENT_TEC_AZUL_PULSADA;
 	}
 	else if (randomValue == 2){
-		EscribirPin(SIMON_PIN_LED_ROJO, ON);
-		EnviarSonido(SOUND_1);
+		WriteSimonPin(SIMON_PIN_LED_ROJO, ON);
+		SendSound(SOUND_3);
 		simonEventToWait = SIMON_EVENT_TEC_ROJO_PULSADA;
 	}
 	else if (randomValue == 3){
-		EscribirPin(SIMON_PIN_LED_VERDE, ON);
-		EnviarSonido(SOUND_1);
+		WriteSimonPin(SIMON_PIN_LED_VERDE, ON);
+		SendSound(SOUND_4);
 		simonEventToWait = SIMON_EVENT_TEC_VERDE_PULSADA;
 	}
-
 	delay(500);
-
 	SetAllLeds(OFF);
-
 //	BestArray[MaxIndexReached] = randomValue; todo En realidad aca hay que guardar el pin
 
 	return simonEventToWait;
-
 }
 
 /*==================[external functions definition]==========================*/
 
-void SimonDriver_MachineState (SimonEvent_t simonEvent){
+void 				SimonDriver_MachineState (SimonEvent_t simonEvent){
 
-static simonState = SIMON_STATE_INICIANDO;
-SimonEvent_t teclaLeida, colorEnviado;
-bool_t finJuego, changeState;
+static simonState = SIMON_STATE_INIT;
+SimonEvent_t eventOcurred, colSorSended;
+bool_t endOfGame;
 
 	switch(simonState){
-		case SIMON_STATE_INICIANDO:
-
-			ConfigurarPines();
-			SecuenciaInicio();
-
-			simonState = SIMON_STATE_ESPERANDO_TECLAS;
+		case SIMON_STATE_INIT:
+			InitSimonBoard();
+			InitSecuence();
+			simonState = SIMON_STATE_WAIT_BUTTON;
 		break;
-		case SIMON_STATE_ESPERANDO_TECLAS:
-			changeState = FALSE;
-			while (!changeState){
-				if ((teclaLeida = LeerTeclas()) != SIMON_EVENT_NINGUNO){
-					if 		(teclaLeida == SIMON_EVENT_TEC_START_PULSADA) 	simonState = SIMON_STATE_LANZANDO_JUEGO;
-					else if (teclaLeida == SIMON_EVENT_TEC_SKILL_PULSADA) 	simonState = SIMON_STATE_CAMBIANDO_SKILL;
-					else if (teclaLeida == SIMON_EVENT_TEC_BEST_PULSADA) 	simonState = SIMON_STATE_MOSTRANDO_BEST;
-					else if (teclaLeida == SIMON_EVENT_TEC_GAME_PULSADA) 	simonState = SIMON_STATE_CAMBIANDO_JUEGO;
-					changeState = TRUE;
-				}
+		case SIMON_STATE_WAIT_BUTTON:
+			while (simonState == SIMON_STATE_WAIT_BUTTON){
+				if 		(eventOcurred == SIMON_EVENT_TEC_START_PULSADA) 	simonState = SIMON_STATE_LAUNCH_GAME;
+				else if (eventOcurred == SIMON_EVENT_TEC_SKILL_PULSADA) 	simonState = SIMON_STATE_CHANGE_SKILL;
+				else if (eventOcurred == SIMON_EVENT_TEC_BEST_PULSADA) 		simonState = SIMON_STATE_SHOW_BEST;
+				else if (eventOcurred == SIMON_EVENT_TEC_GAME_PULSADA) 		simonState = SIMON_STATE_CHANGE_GAME;
 			}
 		break;
-		case SIMON_STATE_MOSTRANDO_BEST:
-			MostrarMejorSecuencia();
-			simonState = SIMON_STATE_ESPERANDO_TECLAS;
+		case SIMON_STATE_SHOW_BEST:
+			ShowBestGame();
+			simonState = SIMON_STATE_WAIT_BUTTON;
 		break;
-		case SIMON_STATE_CAMBIANDO_JUEGO:
-			CambiarJuego();
-			simonState = SIMON_STATE_ESPERANDO_TECLAS;
+		case SIMON_STATE_CHANGE_GAME:
+			ChangeGame();
+			simonState = SIMON_STATE_WAIT_BUTTON;
 		break;
-		case SIMON_STATE_CAMBIANDO_SKILL:
-			CambiarHabilidad();
-			simonState = SIMON_STATE_ESPERANDO_TECLAS;
+		case SIMON_STATE_CHANGE_SKILL:
+			ChangeSkill();
+			simonState = SIMON_STATE_WAIT_BUTTON;
 		break;
-		case SIMON_STATE_LANZANDO_JUEGO:
-			finJuego = FALSE;
-			while (!finJuego){
-				colorEnviado = LanzarSiguiente();
-				while ((teclaLeida = LeerTeclas()) != SIMON_EVENT_NINGUNO) ;	//se queda esperando leer una tecla valida
-				if (teclaLeida != colorEnviado){
-					simonState = SIMON_STATE_FINALIZANDO_JUEGO;
-					finJuego = TRUE;
+		case SIMON_STATE_LAUNCH_GAME:
+//			endOfGame = FALSE;
+//			while (!endOfGame){
+//				colorSended = LaunchNextPlay();
+//				while ((eventOcurred = ReadButtons()) == SIMON_EVENT_NONE) ;	//se queda esperando leer una tecla valida
+//				if (eventOcurred != colorSended){
+//					simonState = SIMON_STATE_FINISH_GAME;
+//					endOfGame = TRUE;
+//				}
+//			}
+			endOfGame = FALSE;
+			while (!endOfGame){
+				colorSended = LaunchNextPlay();
+				while ((eventOcurred = ReadButtons()) == SIMON_EVENT_NONE) ;	//se queda esperando leer una tecla valida
+				if (eventOcurred != colorSended){
+					simonState = SIMON_STATE_FINISH_GAME;
+					endOfGame = TRUE;
 				}
 			}
+			//Lanzar la siguiente jugada y guardar el historial
+			LaunchNextPlay();
+			//Compara la jugada lanzada con la jugada recibida
+			GetCurrentPlay();
 
 		break;
-		case SIMON_STATE_FINALIZANDO_JUEGO:
-
+		case SIMON_STATE_FINISH_GAME:
 			SetAllLeds(ON);
 			delay(1000);
 			SetAllLeds(OFF);
 			delay(1000);
-			simonState = SIMON_STATE_ESPERANDO_TECLAS;
+			simonState = SIMON_STATE_WAIT_BUTTON;
 		break;
 		default:
-			simonState = SIMON_STATE_ESPERANDO_TECLAS;
+			simonState = SIMON_STATE_WAIT_BUTTON;
 		break;
 	}
 }
 
 /* FUNCION PRINCIPAL, PUNTO DE ENTRADA AL PROGRAMA LUEGO DE RESET. */
-int main(void){
+int 				main					(void){
+	/* Inicializar la placa */
+	boardConfig();
+	/* Inicializar el conteo de Ticks con resolución de 1ms, sin tickHook */
+	tickConfig( 1, 0 );
+	/* Inicializar GPIOs */
+	gpioConfig( 0, GPIO_ENABLE );
+	gpioConfig( 1, GPIO_ENABLE );
+	gpioConfig( 2, GPIO_ENABLE );
+	gpioConfig( 3, GPIO_ENABLE );
+	gpioConfig( 4, GPIO_ENABLE );
+	gpioConfig( 5, GPIO_ENABLE );
 
-   /* ------------- INICIALIZACIONES ------------- */
-
-   /* Inicializar la placa */
-   boardConfig();
-
-   /* Inicializar el conteo de Ticks con resolución de 1ms, sin tickHook */
-   tickConfig( 1, 0 );
-
-   /* Inicializar GPIOs */
-   gpioConfig( 0, GPIO_ENABLE );
-   gpioConfig( 1, GPIO_ENABLE );
-   gpioConfig( 2, GPIO_ENABLE );
-   gpioConfig( 3, GPIO_ENABLE );
-   gpioConfig( 4, GPIO_ENABLE );
-   gpioConfig( 5, GPIO_ENABLE );
-
-
-
-   while (1){
-	   SimonDriver_MachineState(SIMON_STATE_INICIANDO);
-   }
-
-   /* NO DEBE LLEGAR NUNCA AQUI, debido a que a este programa no es llamado
-      por ningun S.O. */
-   return 0 ;
+	while (1){
+		SimonDriver_MachineState(SIMON_STATE_INIT);
+	}
+	/* NO DEBE LLEGAR NUNCA AQUI, debido a que a este programa no es llamado
+	por ningun S.O. */
+	return 0 ;
 }
 
 /*==================[end of file]============================================*/
